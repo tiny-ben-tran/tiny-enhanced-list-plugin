@@ -1,8 +1,8 @@
 import { Editor } from 'tinymce';
 
 
-const register = (editor: Editor, nodeName: string) => {
-  const panelItems = [
+const register = (editor: Editor, nodeName: string): void => {
+  const panelItems: any[] = [
     {
       type: 'bar',
       items: [

@@ -1,11 +1,8 @@
 import { Editor, TinyMCE } from 'tinymce';
 import * as Dialogs from '../ts/ui/Dialog';
+import * as Actions from '../ts/core/Actions';
 
 declare const tinymce: TinyMCE;
-
-function applyUnorderList(editor) {
-  editor.execCommand('InsertUnOrderedList', false, {});
-}
 
 const setup = (editor: Editor, url: string): void => {
   if (!editor.hasPlugin('lists') || !editor.hasPlugin('advlist')) {
@@ -17,7 +14,7 @@ const setup = (editor: Editor, url: string): void => {
     onAction: () => {
       const selectingElement = editor.selection.getStart(true);
       if (selectingElement.nodeName !== 'OL' && selectingElement.nodeName !== 'UL' && selectingElement.nodeName !== 'LI') {
-        applyUnorderList(editor);
+        Actions.applyUnorderList(editor);
       } else {
         Dialogs.register(editor, selectingElement.nodeName);
       }
