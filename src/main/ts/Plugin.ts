@@ -1,56 +1,27 @@
 import { Editor, TinyMCE } from 'tinymce';
+import * as Dialogs from '../ts/ui/Dialog';
 
 declare const tinymce: TinyMCE;
 
-
-function getListElementInParent(editor: Editor) {
-  const selectionStart = editor.selection.getStart(true);
-  return editor.dom.getParent(selectionStart, 'OL,UL,DL');
+function applyUnorderList(editor) {
+  editor.execCommand('InsertUnOrderedList', false, {});
 }
 
 const setup = (editor: Editor, url: string): void => {
   if (!editor.hasPlugin('lists') || !editor.hasPlugin('advlist')) {
-    throw 'List and Advanced List plugins are required';
+    console.error('List and Advanced List plugins are required');
   }
+  // Register toolbar button
   editor.ui.registry.addButton('tiny-enhanced-list-plugin', {
     icon: 'list-bull-square',
     onAction: () => {
-      const listElement = getListElementInParent(editor);
-      if (listElement === null) {
-        editor.execCommand('InsertOrderedList', false, {});
+      const selectingElement = editor.selection.getStart(true);
+      if (selectingElement.nodeName !== 'OL' && selectingElement.nodeName !== 'UL' && selectingElement.nodeName !== 'LI') {
+        applyUnorderList(editor);
       } else {
-          tinymce.activeEditor.windowManager.open({
-            title: 'Select a styling',
-            body: {
-              type: 'panel',
-              items: [
-                {
-                  type: 'listbox',
-                  name: 'selectedStyle',
-                  label: 'Select a style',
-                  items: [
-                    { text: 'Bold', value: 'bold' },
-                    { text: 'Italic', value: 'italic' },
-                    { text: 'Strike', value: 'strikethrough' },
-                  ]
-                }
-              ]
-            },
-            buttons: [
-              {
-                type: 'submit',
-                text: 'Submit'
-              }
-            ],
-            onSubmit: function (dialogApi) {
-              dialogApi.close();
-            },
-            onChange: function (dialogApi) {
-              console.log(dialogApi.getData()["selectedStyle"]);
-            }
-          });
-        }
+        Dialogs.register(editor, selectingElement.nodeName);
       }
+    }
   });
 };
 
