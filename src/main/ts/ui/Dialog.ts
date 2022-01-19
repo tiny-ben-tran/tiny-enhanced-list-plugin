@@ -1,4 +1,27 @@
 import { Editor } from 'tinymce';
+import { Traverse, SugarElement, PredicateFilter } from '@ephox/sugar';
+import { Arr } from '@ephox/katamari';
+
+
+interface DialogData {
+  readonly listStyle: string;
+  readonly applyingOption: string;
+  readonly paddingValue: string;
+}
+
+/**
+ * Apply style to OL, UL and padding to LI nodes
+ * @param node Start node
+ */
+function applyStyleToNodes(editor: Editor, nodes: Node[], listStyle: string, padding: string) {
+  Arr.each(nodes, (n) => {
+    if (/OL|UL/.test(n.nodeName) === true) {
+      editor.dom.setStyle(n, 'list-style-type', listStyle);
+    } else if (n.nodeName === "LI") {
+      editor.dom.setStyle(n, 'padding-left', padding + "px");
+    }
+  });
+}
 
 const register = (editor: Editor, nodeName: string): void => {
   const panelItems: any[] = [
@@ -53,7 +76,7 @@ const register = (editor: Editor, nodeName: string): void => {
               value: 'selectedListAndParents', text: 'Selected list + all parent lists'
             },
             {
-              value: 'selectedListAndAllChildren', text: 'Selected list + all children lists'
+              value: 'selectedListAndDecendants', text: 'Selected list + all children lists'
             },
             {
               value: 'wholetree', text: 'All lists in the current tree'
@@ -76,29 +99,30 @@ const register = (editor: Editor, nodeName: string): void => {
       }
     ],
     onSubmit: function (dialogApi) {
-      const {listStyleType, paddingValue, applyingOption} = dialogApi.getData() as any;
-      const currentEl = editor.selection.getStart(true);
-      // TODO: Refactor when able to use the sweet ephox/sugar
-      let parentEls = [];
-      if (applyingOption === "" || applyingOption === "selectedList") {
-        parentEls = [editor.dom.getParent(currentEl, "UL,OL", null)];
-      } else if (applyingOption === "selectedListAndParents") {
-        parentEls = editor.dom.getParents(currentEl, "UL,OL", null);
+      const {listStyle, paddingValue, applyingOption} = dialogApi.getData() as DialogData;
+      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
+      const currenListNode = Traverse.parentNode(selectedEl).getOrNull();
+      let listNodes: SugarElement<Node>[] = [currenListNode];
+      // Get UL and OL list nodes
+      if (applyingOption === "selectedListAndParents") {
+        const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+        listNodes = listNodes.concat(ancestorNodes);
+      } else if (applyingOption === "selectedListAndDecendants") {
+        const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+        listNodes = listNodes.concat(descendantNodes);
+      } else if (applyingOption === "wholetree") {
+        const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+        const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+        listNodes = listNodes.concat(ancestorNodes).concat(descendantNodes);
       }
+      // get all LI items
+      // can defer this step later
+      const liItems = Arr.flatten(Arr.map(listNodes, (e) => PredicateFilter.children(e, (i) => i.dom.nodeName === "LI")));
+      const nodes = Arr.map(liItems.concat(listNodes), (e) => e.dom);
       editor.undoManager.transact(function() {
-        parentEls.forEach((e) => {
-          if (e) {
-            editor.dom.setStyle(e, 'list-style-type', listStyleType);
-            if (/[0-9]+/.test(paddingValue) === true) {
-                editor.dom.setStyle(e.children, 'padding-left', paddingValue + "px");
-            }
-          }
-        });
+        applyStyleToNodes(editor, nodes , listStyle, paddingValue);
       });
       dialogApi.close();
-    },
-    onChange: function (dialogApi) {
-      console.log(dialogApi.getData());
     },
   });
 }
