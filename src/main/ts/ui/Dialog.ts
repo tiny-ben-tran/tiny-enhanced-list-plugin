@@ -1,6 +1,5 @@
 import { Editor } from 'tinymce';
 
-
 const register = (editor: Editor, nodeName: string): void => {
   const panelItems: any[] = [
     {
@@ -18,7 +17,7 @@ const register = (editor: Editor, nodeName: string): void => {
               value: 'circle', text: 'Circle'
             },
             {
-              value: 'square', text: 'square'
+              value: 'square', text: 'Square'
             }
           ]
         },
@@ -29,7 +28,7 @@ const register = (editor: Editor, nodeName: string): void => {
       items: [
         {
           type: 'input',
-          label: 'Padding Value',
+          label: 'Padding Value (px)',
           name: 'paddingValue',
           inputMode: 'text',
         },
@@ -77,7 +76,14 @@ const register = (editor: Editor, nodeName: string): void => {
       }
     ],
     onSubmit: function (dialogApi) {
-      console.log('Dialog api ', dialogApi.getData());
+      const {listStyleType, paddingValue} = dialogApi.getData() as any;
+      // select parent ul,ol and apply new style
+      editor.dom.setStyle(editor.dom.getParent(editor.selection.getStart(true), 'UL,OL', null), 'list-style-type', listStyleType);
+      // apply padding-left to all siblings (LI)
+      // TODO validate inputs first
+      if (paddingValue !== "") {
+        editor.dom.setStyle(editor.dom.select('li'), 'padding-left', paddingValue + "px");
+      }
       dialogApi.close();
     },
     onChange: function (dialogApi) {

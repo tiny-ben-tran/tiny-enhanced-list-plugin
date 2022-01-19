@@ -1,6 +1,5 @@
 import { Editor, TinyMCE } from 'tinymce';
 import * as Dialogs from '../ts/ui/Dialog';
-import * as Actions from '../ts/core/Actions';
 
 declare const tinymce: TinyMCE;
 
@@ -13,8 +12,8 @@ const setup = (editor: Editor, url: string): void => {
     icon: 'list-bull-square',
     onAction: () => {
       const selectingElement = editor.selection.getStart(true);
-      if (selectingElement.nodeName !== 'OL' && selectingElement.nodeName !== 'UL' && selectingElement.nodeName !== 'LI') {
-        Actions.applyUnorderList(editor);
+      if (/OL|UL|LI/.test(selectingElement.nodeName) === false) {
+        editor.execCommand('InsertUnOrderedList', false, {});
       } else {
         Dialogs.register(editor, selectingElement.nodeName);
       }
