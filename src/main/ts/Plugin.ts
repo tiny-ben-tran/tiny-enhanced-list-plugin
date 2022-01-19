@@ -7,15 +7,16 @@ const setup = (editor: Editor, url: string): void => {
   if (!editor.hasPlugin('lists') || !editor.hasPlugin('advlist')) {
     console.error('List and Advanced List plugins are required');
   }
+
   // Register toolbar button
   editor.ui.registry.addButton('tiny-enhanced-list-plugin', {
     icon: 'list-bull-square',
     onAction: () => {
-      const selectingElement = editor.selection.getStart(true);
-      if (/OL|UL|LI/.test(selectingElement.nodeName) === false) {
+      const selectedElement = editor.selection.getNode();
+      if (/OL|UL|LI/.test(selectedElement.nodeName) === false) {
         editor.execCommand('InsertUnOrderedList', false, {});
       } else {
-        Dialogs.register(editor, selectingElement.nodeName);
+        Dialogs.register(editor, selectedElement);
       }
     }
   });

@@ -114,11 +114,11 @@ module.exports = (grunt) => {
 
         module: {
           rules: [
-            {
-              test: /\.js$/,
-              use: [ 'source-map-loader' ],
-              enforce: 'pre'
-            },
+            // {
+            //   test: /\.js$/,
+            //   use: [ 'source-map-loader' ],
+            //   enforce: 'pre'
+            // },
             {
               test: /\.ts$/,
               use: [

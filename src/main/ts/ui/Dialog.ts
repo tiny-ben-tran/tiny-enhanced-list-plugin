@@ -2,7 +2,6 @@ import { Editor } from 'tinymce';
 import { Traverse, SugarElement, PredicateFilter } from '@ephox/sugar';
 import { Arr } from '@ephox/katamari';
 
-
 interface DialogData {
   readonly listStyle: string;
   readonly applyingOption: string;
@@ -10,8 +9,41 @@ interface DialogData {
 }
 
 /**
+ *
+ * @param selectedEl
+ * @returns True if selectedEl has more than 1 UL or OL ancestors
+ */
+function isNestedList(selectedEl: SugarElement<Element>) {
+  const ancestors = PredicateFilter.ancestors(selectedEl, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+  return ancestors.length > 1;
+}
+
+function getListAndItemNodes(selectedEl: SugarElement<Element>, applyingOption: string): Node[] {
+  const currenListNode = Traverse.parentNode(selectedEl).getOrDie();
+  let listNodes: SugarElement<Node>[] = [];
+  // Add ancestor or decedant UL and OL
+  if (applyingOption === "selectedListAndParents") {
+    const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    listNodes = listNodes.concat(ancestorNodes);
+  } else if (applyingOption === "selectedListAndDecendants") {
+    const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    listNodes = listNodes.concat(descendantNodes);
+  } else if (applyingOption === "wholetree") {
+    const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    listNodes = listNodes.concat(ancestorNodes).concat(descendantNodes);
+  }
+  // get LI of each OL and UL
+  const liItems = Arr.flatten(Arr.map(listNodes, (e) => PredicateFilter.children(e, (i) => i.dom.nodeName === "LI")));
+  listNodes = listNodes.concat(liItems);
+  return Arr.map(liItems, (e) => e.dom);
+}
+
+/**
  * Apply style to OL, UL and padding to LI nodes
- * @param node Start node
+ * @param nodes
+ * @param listStyle Values of list-style-type
+ * @param padding Apply to LI nodes
  */
 function applyStyleToNodes(editor: Editor, nodes: Node[], listStyle: string, padding: string) {
   Arr.each(nodes, (n) => {
@@ -23,7 +55,8 @@ function applyStyleToNodes(editor: Editor, nodes: Node[], listStyle: string, pad
   });
 }
 
-const register = (editor: Editor, nodeName: string): void => {
+const register = (editor: Editor, selectedEl: Element): void => {
+  const sugarEl = SugarElement.fromDom(selectedEl);
   const panelItems: any[] = [
     {
       type: 'bar',
@@ -60,7 +93,7 @@ const register = (editor: Editor, nodeName: string): void => {
   ];
 
   // specific option to LI element
-  if (nodeName === "LI") {
+  if (isNestedList(sugarEl) === true) {
     panelItems.push({
       type: 'bar',
       items: [
@@ -100,27 +133,15 @@ const register = (editor: Editor, nodeName: string): void => {
     ],
     onSubmit: function (dialogApi) {
       const {listStyle, paddingValue, applyingOption} = dialogApi.getData() as DialogData;
-      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
-      const currenListNode = Traverse.parentNode(selectedEl).getOrNull();
-      let listNodes: SugarElement<Node>[] = [currenListNode];
-      // Get UL and OL list nodes
-      if (applyingOption === "selectedListAndParents") {
-        const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-        listNodes = listNodes.concat(ancestorNodes);
-      } else if (applyingOption === "selectedListAndDecendants") {
-        const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-        listNodes = listNodes.concat(descendantNodes);
-      } else if (applyingOption === "wholetree") {
-        const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-        const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-        listNodes = listNodes.concat(ancestorNodes).concat(descendantNodes);
-      }
-      // get all LI items
-      // can defer this step later
-      const liItems = Arr.flatten(Arr.map(listNodes, (e) => PredicateFilter.children(e, (i) => i.dom.nodeName === "LI")));
-      const nodes = Arr.map(liItems.concat(listNodes), (e) => e.dom);
+      const nodes = getListAndItemNodes(sugarEl, applyingOption);
       editor.undoManager.transact(function() {
-        applyStyleToNodes(editor, nodes , listStyle, paddingValue);
+        Arr.each(nodes, (n) => {
+          if (/OL|UL/.test(n.nodeName) === true) {
+            editor.dom.setStyle(n, 'list-style-type', listStyle);
+          } else if (n.nodeName === "LI") {
+            editor.dom.setStyle(n, 'padding-left', paddingValue + "px");
+          }
+        });
       });
       dialogApi.close();
     },
