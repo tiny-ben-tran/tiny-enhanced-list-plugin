@@ -50,7 +50,7 @@ const register = (editor: Editor, nodeName: string): void => {
               value: 'selectedList', text: 'Selected list'
             },
             {
-              value: 'selectedListAndParent', text: 'Selected list + all parent lists'
+              value: 'selectedListAndParents', text: 'Selected list + all parent lists'
             },
             {
               value: 'selectedListAndAllChildren', text: 'Selected list + all children lists'
@@ -76,14 +76,22 @@ const register = (editor: Editor, nodeName: string): void => {
       }
     ],
     onSubmit: function (dialogApi) {
-      const {listStyleType, paddingValue} = dialogApi.getData() as any;
+      const {listStyleType, paddingValue, applyingOption} = dialogApi.getData() as any;
+      const currentEl = editor.selection.getStart(true);
+      // TODO: Refactor when able to use the sweet ephox/sugar
+      let parentEls = [];
+      if (applyingOption === "" || applyingOption === "selectedList") {
+        parentEls.push(parentEls);
+      } else if (applyingOption === "selectedListAndParents") {
+        parentEls = editor.dom.getParents(currentEl, "UL,OL", null);
+      }
       editor.undoManager.transact(function() {
-        // select parent ul,ol and apply new style
-        editor.dom.setStyle(editor.dom.getParent(editor.selection.getStart(true), 'UL,OL', null), 'list-style-type', listStyleType);
-        // apply padding-left to all siblings (LI)
-        if (/[0-9]+/.test(paddingValue) === true) {
-          editor.dom.setStyle(editor.dom.select('li'), 'padding-left', paddingValue + "px");
-        }
+        parentEls.forEach((e) => {
+          editor.dom.setStyle(e, 'list-style-type', listStyleType);
+          if (/[0-9]+/.test(paddingValue) === true) {
+              editor.dom.setStyle(e.children, 'padding-left', paddingValue + "px");
+          }
+        });
       });
       dialogApi.close();
     },
