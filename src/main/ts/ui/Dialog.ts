@@ -77,13 +77,14 @@ const register = (editor: Editor, nodeName: string): void => {
     ],
     onSubmit: function (dialogApi) {
       const {listStyleType, paddingValue} = dialogApi.getData() as any;
-      // select parent ul,ol and apply new style
-      editor.dom.setStyle(editor.dom.getParent(editor.selection.getStart(true), 'UL,OL', null), 'list-style-type', listStyleType);
-      // apply padding-left to all siblings (LI)
-      // TODO validate inputs first
-      if (paddingValue !== "") {
-        editor.dom.setStyle(editor.dom.select('li'), 'padding-left', paddingValue + "px");
-      }
+      editor.undoManager.transact(function() {
+        // select parent ul,ol and apply new style
+        editor.dom.setStyle(editor.dom.getParent(editor.selection.getStart(true), 'UL,OL', null), 'list-style-type', listStyleType);
+        // apply padding-left to all siblings (LI)
+        if (/[0-9]+/.test(paddingValue) === true) {
+          editor.dom.setStyle(editor.dom.select('li'), 'padding-left', paddingValue + "px");
+        }
+      });
       dialogApi.close();
     },
     onChange: function (dialogApi) {
