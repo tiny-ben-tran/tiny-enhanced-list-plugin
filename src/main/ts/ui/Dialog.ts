@@ -81,15 +81,17 @@ const register = (editor: Editor, nodeName: string): void => {
       // TODO: Refactor when able to use the sweet ephox/sugar
       let parentEls = [];
       if (applyingOption === "" || applyingOption === "selectedList") {
-        parentEls.push(parentEls);
+        parentEls = [editor.dom.getParent(currentEl, "UL,OL", null)];
       } else if (applyingOption === "selectedListAndParents") {
         parentEls = editor.dom.getParents(currentEl, "UL,OL", null);
       }
       editor.undoManager.transact(function() {
         parentEls.forEach((e) => {
-          editor.dom.setStyle(e, 'list-style-type', listStyleType);
-          if (/[0-9]+/.test(paddingValue) === true) {
-              editor.dom.setStyle(e.children, 'padding-left', paddingValue + "px");
+          if (e) {
+            editor.dom.setStyle(e, 'list-style-type', listStyleType);
+            if (/[0-9]+/.test(paddingValue) === true) {
+                editor.dom.setStyle(e.children, 'padding-left', paddingValue + "px");
+            }
           }
         });
       });
