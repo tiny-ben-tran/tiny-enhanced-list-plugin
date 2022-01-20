@@ -8,15 +8,10 @@ interface DialogData {
   readonly paddingValue: string;
 }
 
-/**
- *
- * @param selectedEl
- * @returns True if selectedEl has more than 1 UL or OL ancestors
- */
-function isNestedList(selectedEl: SugarElement<Element>) {
-  const ancestors = PredicateFilter.ancestors(selectedEl, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-  return ancestors.length > 1;
+function isOLULNode(e: SugarElement<Element>) {
+  return Arr.contains(["UL", "OL"], e.dom.nodeName) === true;
 }
+
 
 function getListAndItemNodes(selectedEl: SugarElement<Element>, applyingOption: string): Node[] {
   const currenListNode = Traverse.parentNode(selectedEl).getOrDie();
@@ -92,8 +87,8 @@ const register = (editor: Editor, selectedEl: Element): void => {
     }
   ];
 
-  // specific option to LI element
-  if (isNestedList(sugarEl) === true) {
+  // dropdown for nested list
+  if (PredicateFilter.ancestors(sugarEl, isOLULNode).length > 1) {
     panelItems.push({
       type: 'bar',
       items: [
@@ -119,6 +114,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
       ]
     })
   }
+
   editor.windowManager.open({
     title: 'List Styling',
     body: {
