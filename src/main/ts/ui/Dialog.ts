@@ -1,10 +1,10 @@
 import { Editor } from 'tinymce';
 import { Arr } from '@ephox/katamari';
-import * as Actions from '../core/Actions';
+import * as Utils from '../core/Utils';
 import { PredicateFilter, SugarElement } from '@ephox/sugar';
 interface DialogData {
   readonly listStyle: string;
-  readonly applyingOption: Actions.ApplyingOption;
+  readonly applyingOption: Utils.ApplyingOption;
   readonly paddingValue: string;
 }
 
@@ -46,7 +46,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
   ];
 
   // dropdown for nested list
-  if (PredicateFilter.ancestors(sugarEl, Actions.isOLULNode).length > 1) {
+  if (PredicateFilter.ancestors(sugarEl, Utils.isOLULNode).length > 1) {
     panelItems.push({
       type: 'bar',
       items: [
@@ -87,7 +87,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
     ],
     onSubmit: function (dialogApi) {
       const {listStyle, paddingValue, applyingOption} = dialogApi.getData() as DialogData;
-      const nodes = Actions.getListAndItemNodes(sugarEl, applyingOption);
+      const nodes = Utils.getListAndItemNodes(sugarEl, applyingOption);
       editor.undoManager.transact(function() {
         Arr.each(nodes, (n) => {
           if (/OL|UL/.test(n.nodeName) === true) {
