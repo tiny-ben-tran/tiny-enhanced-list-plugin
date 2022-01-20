@@ -1,6 +1,6 @@
 import { Arr } from '@ephox/katamari';
 import { SuccessCallback } from '@ephox/mcagar/lib/main/ts/ephox/mcagar/loader/Loader';
-import { SugarElement, Traverse } from '@ephox/sugar';
+import { PredicateFilter, SugarElement, Traverse } from '@ephox/sugar';
 import { Editor, TinyMCE } from 'tinymce';
 import * as Dialogs from '../ts/ui/Dialog';
 import * as Utils from "../ts/core/Utils"
@@ -95,6 +95,17 @@ const orderedListTypes = [
   }
 ];
 
+function applyListStyleHelper(editor: Editor, element: SugarElement<Node>, command: string, listStyleType: string, commandOptions?: any) {
+  if (/UL|OL|LI/.test(element.dom.nodeName) === false) {
+    editor.execCommand(command, false, commandOptions || {});
+  } else {
+    const listNode = Traverse.parentNode(element).getOrNull();
+    if (listNode !== null && Utils.isOLULNode(listNode) === true) {
+      editor.dom.setStyle(listNode.dom, 'list-style-type', listStyleType);
+    }
+  }
+}
+
 declare const tinymce: TinyMCE;
 
 const setup = (editor: Editor): void => {
@@ -118,16 +129,8 @@ const setup = (editor: Editor): void => {
   // unorderlist
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-unorderedlist', {
     icon: 'list-bull-circle',
-    onAction: (api) => {
-      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
-      if (/UL|OL|LI/.test(selectedEl.dom.nodeName) === false) {
-        editor.execCommand('InsertUnOrderedList', false, {});
-      } else {
-        const listNode = Traverse.parentNode(selectedEl).getOrNull();
-        if (listNode !== null && Utils.isOLULNode(listNode) === true) {
-          editor.dom.setStyle(listNode.dom, 'list-style-type', unorderedListTypes[0].value);
-        }
-      }
+    onAction: () => {
+      applyListStyleHelper(editor, SugarElement.fromDom(editor.selection.getNode()), 'InsertUnOrderedList', unorderedListTypes[0].value);
     },
     columns: 3,
     fetch: (callback) => {
@@ -140,17 +143,9 @@ const setup = (editor: Editor): void => {
       callback(items);
     },
     onItemAction: (api, value) => {
-      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
-      if (/UL|OL|LI/.test(selectedEl.dom.nodeName) === false) {
-        editor.execCommand('InsertUnorderedList', false, {
-          'list-style-type': value
-        });
-      } else {
-        const listNode = Traverse.parentNode(selectedEl).getOrNull();
-        if (listNode !== null && Utils.isOLULNode(listNode) === true) {
-          editor.dom.setStyle(listNode.dom, 'list-style-type', value);
-        }
-      }
+      applyListStyleHelper(editor, SugarElement.fromDom(editor.selection.getNode()), 'InsertUnOrderedList', value, {
+        'list-style-type': value
+      });
     }
   });
 
