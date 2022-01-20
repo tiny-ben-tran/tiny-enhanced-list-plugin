@@ -45,7 +45,7 @@ function applyStyleToNodes(editor: Editor, nodes: Node[], listStyle: string, pad
   Arr.each(nodes, (n) => {
     if (/OL|UL/.test(n.nodeName) === true) {
       editor.dom.setStyle(n, 'list-style-type', listStyle);
-    } else if (n.nodeName === "LI") {
+    } else if (n.nodeName === "LI" && /[0-9]+/.test(padding)) {
       editor.dom.setStyle(n, 'padding-left', padding + "px");
     }
   });
