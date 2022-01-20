@@ -12,22 +12,23 @@ function isOLULNode(e: SugarElement<Element>) {
   return Arr.contains(["UL", "OL"], e.dom.nodeName) === true;
 }
 
-
 function getListAndItemNodes(selectedEl: SugarElement<Element>, applyingOption: string): Node[] {
-  const currenListNode = Traverse.parentNode(selectedEl).getOrDie();
-  let listNodes: SugarElement<Node>[] = [currenListNode];
+  // TODO: Maybe need to handle where parent of LI isn't an OL or UL node?
+  const currenListNode = Traverse.parentNode(selectedEl).getOrDie("Can not find parent node");
+  let listNodes: SugarElement<Node>[] = [];
   // Add ancestor or decedant UL and OL
   if (applyingOption === "selectedListAndParents") {
-    const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    const ancestorNodes = PredicateFilter.ancestors(currenListNode, isOLULNode);
     listNodes = listNodes.concat(ancestorNodes);
   } else if (applyingOption === "selectedListAndDecendants") {
-    const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    const descendantNodes = PredicateFilter.descendants(currenListNode, isOLULNode);
     listNodes = listNodes.concat(descendantNodes);
   } else if (applyingOption === "wholetree") {
-    const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
-    const descendantNodes = PredicateFilter.descendants(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
+    const ancestorNodes = PredicateFilter.ancestors(currenListNode, isOLULNode);
+    const descendantNodes = PredicateFilter.descendants(currenListNode, isOLULNode);
     listNodes = listNodes.concat(ancestorNodes).concat(descendantNodes);
   }
+
   // get LI of each OL and UL
   const liItems = Arr.flatten(Arr.map(listNodes, (e) => PredicateFilter.children(e, (i) => i.dom.nodeName === "LI")));
   listNodes = listNodes.concat(liItems);
