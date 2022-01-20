@@ -20,7 +20,7 @@ function isNestedList(selectedEl: SugarElement<Element>) {
 
 function getListAndItemNodes(selectedEl: SugarElement<Element>, applyingOption: string): Node[] {
   const currenListNode = Traverse.parentNode(selectedEl).getOrDie();
-  let listNodes: SugarElement<Node>[] = [];
+  let listNodes: SugarElement<Node>[] = [currenListNode];
   // Add ancestor or decedant UL and OL
   if (applyingOption === "selectedListAndParents") {
     const ancestorNodes = PredicateFilter.ancestors(currenListNode, (e) => Arr.contains(["UL", "OL"], e.dom.nodeName) === true);
@@ -36,7 +36,7 @@ function getListAndItemNodes(selectedEl: SugarElement<Element>, applyingOption: 
   // get LI of each OL and UL
   const liItems = Arr.flatten(Arr.map(listNodes, (e) => PredicateFilter.children(e, (i) => i.dom.nodeName === "LI")));
   listNodes = listNodes.concat(liItems);
-  return Arr.map(liItems, (e) => e.dom);
+  return Arr.map(listNodes, (e) => e.dom);
 }
 
 /**
@@ -63,7 +63,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
       items: [
         {
           type: 'selectbox',
-          name: 'listStyleType',
+          name: 'listStyle',
           label: 'Select a style',
           items: [
             {
@@ -135,13 +135,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
       const {listStyle, paddingValue, applyingOption} = dialogApi.getData() as DialogData;
       const nodes = getListAndItemNodes(sugarEl, applyingOption);
       editor.undoManager.transact(function() {
-        Arr.each(nodes, (n) => {
-          if (/OL|UL/.test(n.nodeName) === true) {
-            editor.dom.setStyle(n, 'list-style-type', listStyle);
-          } else if (n.nodeName === "LI") {
-            editor.dom.setStyle(n, 'padding-left', paddingValue + "px");
-          }
-        });
+        applyStyleToNodes(editor, nodes, listStyle, paddingValue);
       });
       dialogApi.close();
     },
