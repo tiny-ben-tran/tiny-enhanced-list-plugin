@@ -140,8 +140,17 @@ const setup = (editor: Editor): void => {
       callback(items);
     },
     onItemAction: (api, value) => {
-      console.log("api ==>", api);
-      console.log('value ===>', value);
+      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
+      if (/UL|OL|LI/.test(selectedEl.dom.nodeName) === false) {
+        editor.execCommand('InsertUnorderedList', false, {
+          'list-style-type': value
+        });
+      } else {
+        const listNode = Traverse.parentNode(selectedEl).getOrNull();
+        if (listNode !== null && Utils.isOLULNode(listNode) === true) {
+          editor.dom.setStyle(listNode.dom, 'list-style-type', value);
+        }
+      }
     }
   });
 
