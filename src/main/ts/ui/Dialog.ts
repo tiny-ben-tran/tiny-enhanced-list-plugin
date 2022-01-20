@@ -2,6 +2,7 @@ import { Editor } from 'tinymce';
 import { Arr } from '@ephox/katamari';
 import * as Utils from '../core/Utils';
 import { PredicateFilter, SugarElement } from '@ephox/sugar';
+
 interface DialogData {
   readonly listStyle: string;
   readonly applyingOption: Utils.ApplyingOption;
@@ -45,7 +46,7 @@ const register = (editor: Editor, selectedEl: Element): void => {
     }
   ];
 
-  // dropdown for nested list
+  // applying option dropdown for nested list
   if (PredicateFilter.ancestors(sugarEl, Utils.isOLULNode).length > 1) {
     panelItems.push({
       type: 'bar',
