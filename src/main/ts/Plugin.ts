@@ -113,20 +113,20 @@ const setup = (editor: Editor): void => {
     console.error('List and Advanced List plugins are required');
   }
 
-  // Register toolbar button
-  // editor.ui.registry.addButton('tiny-enhanced-list-plugin', {
-  //   icon: 'list-bull-default',
-  //   onAction: () => {
-  //     const selectedElement = editor.selection.getNode();
-  //     if (/OL|UL|LI/.test(selectedElement.nodeName) === false) {
-  //       editor.execCommand('InsertUnOrderedList', false, {});
-  //     } else {
-  //       Dialogs.register(editor, selectedElement);
-  //     }
-  //   }
-  // });
+  // Part 1. Enhanced list
+  editor.ui.registry.addButton('tiny-enhanced-list-plugin-enhanced', {
+    icon: 'list-bull-default',
+    onAction: () => {
+      const selectedElement = editor.selection.getNode();
+      if (/OL|UL|LI/.test(selectedElement.nodeName) === false) {
+        editor.execCommand('InsertUnOrderedList', false, {});
+      } else {
+        Dialogs.register(editor, selectedElement);
+      }
+    }
+  });
   
-  // unorderlist
+  // Part 2. unorderlist split button
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-unorderedlist', {
     icon: 'list-bull-circle',
     onAction: () => {
@@ -149,7 +149,7 @@ const setup = (editor: Editor): void => {
     }
   });
 
-  // ordered list
+  // Part 2. ordered list split button
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-orderedlist', {
     icon: 'list-num-default',
     // invoked when the toolbar is clicked
