@@ -115,7 +115,7 @@ const setup = (editor: Editor): void => {
   
   // unorderlist
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-unorderedlist', {
-    icon: 'list-bull-default',
+    icon: 'list-bull-circle',
     onAction: (api) => {
       console.log(api);
     },
