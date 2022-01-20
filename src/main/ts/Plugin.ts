@@ -1,16 +1,18 @@
 import { Arr } from '@ephox/katamari';
 import { SuccessCallback } from '@ephox/mcagar/lib/main/ts/ephox/mcagar/loader/Loader';
+import { SugarElement, Traverse } from '@ephox/sugar';
 import { Editor, TinyMCE } from 'tinymce';
 import * as Dialogs from '../ts/ui/Dialog';
+import * as Utils from "../ts/core/Utils"
 
 const unorderedListTypes = [
   {
-    value: 'circle',
-    icon: 'list-bull-circle'
-  },
-  {
     value: 'disc',
     icon: 'list-bull-default'
+  },
+  {
+    value: 'circle',
+    icon: 'list-bull-circle'
   },
   {
     value: 'square',
@@ -117,7 +119,15 @@ const setup = (editor: Editor): void => {
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-unorderedlist', {
     icon: 'list-bull-circle',
     onAction: (api) => {
-      console.log(api);
+      const selectedEl = SugarElement.fromDom(editor.selection.getNode());
+      if (/UL|OL|LI/.test(selectedEl.dom.nodeName) === false) {
+        editor.execCommand('InsertUnOrderedList', false, {});
+      } else {
+        const listNode = Traverse.parentNode(selectedEl).getOrNull();
+        if (listNode !== null && Utils.isOLULNode(listNode) === true) {
+          editor.dom.setStyle(listNode.dom, 'list-style-type', unorderedListTypes[0].value);
+        }
+      }
     },
     columns: 3,
     fetch: (callback) => {
