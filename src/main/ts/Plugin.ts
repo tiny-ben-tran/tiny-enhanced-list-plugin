@@ -153,8 +153,8 @@ const setup = (editor: Editor): void => {
   editor.ui.registry.addSplitButton('tiny-enhanced-list-plugin-orderedlist', {
     icon: 'list-num-default',
     // invoked when the toolbar is clicked
-    onAction: (api) => {
-      console.log("wowow", api);
+    onAction: () => {
+      applyListStyleHelper(editor, SugarElement.fromDom(editor.selection.getNode()), 'InsertOrderedList', orderedListTypes[0].value);
     },
     columns: 3,
     fetch: (callback) => {
@@ -168,8 +168,9 @@ const setup = (editor: Editor): void => {
     },
     // invoked when a dropdown list option is clicked
     onItemAction: (api, value) => {
-      console.log("api ==>", api);
-      console.log('value ===>', value);
+      applyListStyleHelper(editor, SugarElement.fromDom(editor.selection.getNode()), 'InsertOrderedList', value, {
+        'list-style-type': value
+      });
     }
   });
 };
