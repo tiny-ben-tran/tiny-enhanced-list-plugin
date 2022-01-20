@@ -9,5 +9,5 @@ Plugin();
 tinymce.init({
   selector: 'textarea.tinymce',
   plugins: 'code tiny-enhanced-list-plugin lists advlist',
-  toolbar: 'tiny-enhanced-list-plugin | numlist bullist'
+  toolbar: 'tiny-enhanced-list-plugin'
 });
