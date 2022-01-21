@@ -1,9 +1,9 @@
 import { Arr } from '@ephox/katamari';
-import { SuccessCallback } from '@ephox/mcagar/lib/main/ts/ephox/mcagar/loader/Loader';
-import { PredicateFilter, SugarElement, Traverse } from '@ephox/sugar';
+import { SugarElement, Traverse } from '@ephox/sugar';
 import { Editor, TinyMCE } from 'tinymce';
-import * as Dialogs from '../ts/ui/Dialog';
-import * as Utils from "../ts/core/Utils"
+import * as Dialogs from './ui/Dialog';
+import * as Utils from "./core/Utils"
+import * as Icons from './ui/Icons';
 
 const unorderedListTypes = [
   {
@@ -27,15 +27,11 @@ const orderedListTypes = [
   },
   {
     value: 'cjk-ideographic',
-    icon: 'bomb',
+    icon: 'cjk',
   },
   {
     value: 'decimal',
     icon: 'list-num-default'
-  },
-  {
-    value: 'decimal-leading-zero',
-    icon: 'bomb'
   },
   {
     value: 'georgian',
@@ -43,58 +39,70 @@ const orderedListTypes = [
   },
   {
     value: 'hebrew',
-    icon: 'bomb'
+    icon: 'hebrew'
   },
   {
     value: 'hiragana',
-    icon: 'bomb'
+    icon: 'hiragana'
   },
   {
     value: 'hiragana-iroha',
-    icon: 'bomb'
+    icon: 'hiragana'
   },
   {
     value: 'katakana',
-    icon: 'bomb'
+    icon: 'katakana'
   },
   {
     value: 'katakana-iroha',
+    icon: 'katakana'
+  },
+  {
+    value: 'decimal-leading-zero',
     icon: 'bomb'
   },
   {
     value: 'lower-alpha',
-    icon: 'bomb'
+    icon: 'list-num-lower-alpha'
   },
   {
     value: 'lower-greek',
-    icon: 'bomb'
+    icon: 'list-num-lower-greek'
   },
   {
     value: 'lower-latin',
-    icon: 'bomb'
+    icon: 'list-num-lower-alpha'
   },
   {
     value: 'lower-roman',
-    icon: 'bomb'
+    icon: 'list-num-lower-roman'
   },
   {
     value: 'upper-alpha',
-    icon: 'bomb'
+    icon: 'list-num-upper-alpha'
   },
   {
     value: 'upper-greek',
-    icon: 'bomb'
+    icon: 'list-num-upper-greek'
   },
   {
     value: 'upper-latin',
-    icon: 'bomb'
+    icon: 'list-num-upper-alpha'
   },
   {
     value: 'upper-roman',
-    icon: 'bomb'
+    icon: 'list-num-upper-roman'
   }
 ];
 
+/**
+ * Common logic for applying list style type
+ * @param editor
+ * @param element Targeted element
+ * @param command A command of Advlist and list plugins
+ * @param listStyleType A valid value for list-style-type
+ * @param commandOptions Options for editor.activeEditor.execCommand
+ */
 function applyListStyleHelper(editor: Editor, element: SugarElement<Node>, command: string, listStyleType: string, commandOptions?: any) {
   if (/UL|OL|LI/.test(element.dom.nodeName) === false) {
     editor.execCommand(command, false, commandOptions || {});
@@ -109,6 +117,9 @@ function applyListStyleHelper(editor: Editor, element: SugarElement<Node>, comma
 declare const tinymce: TinyMCE;
 
 const setup = (editor: Editor): void => {
+  // register icons
+  Icons.register(editor);
+
   if (!editor.hasPlugin('lists') || !editor.hasPlugin('advlist')) {
     console.error('List and Advanced List plugins are required');
   }
